@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Distribution Area & Critical Value Tool</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --line:rgba(15,23,42,.12);
+      --navy:#002855;
+      --gold:#F6BE00;
+      --good:#0f766e;
+      --bad:#b91c1c;
+      --shadow: 0 12px 30px rgba(2,6,23,.10);
+      --radius: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background: linear-gradient(180deg, #ffffff, var(--bg));
+      color: var(--text);
+    }
+    .wrap{
+      max-width: 1040px;
+      margin: 26px auto;
+      padding: 0 16px 28px;
+    }
+    .header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 14px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .badge{
+      background: var(--navy);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 800;
+      letter-spacing:.2px;
+      border: 2px solid rgba(255,255,255,.18);
+      box-shadow: 0 8px 18px rgba(0,40,85,.20);
+    }
+    h1{ margin:0; font-size: 20px; line-height: 1.2; }
+    .sub{ margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+
+    .tabs{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin: 14px 0;
+    }
+    .tabbtn{
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 900;
+      cursor:pointer;
+      border: 1px solid rgba(0,40,85,.28);
+      background: #fff;
+      color: var(--navy);
+    }
+    .tabbtn.active{
+      background: var(--navy);
+      color:#fff;
+      border-color: transparent;
+      box-shadow: 0 10px 22px rgba(0,40,85,.18);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media(min-width: 920px){
+      .grid{ grid-template-columns: 1.25fr .75fr; }
+    }
+    .card{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .card h2{ margin:0 0 10px; font-size: 16px; }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    @media(min-width: 720px){
+      .row.two{ grid-template-columns: 1fr 1fr; }
+      .row.three{ grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 6px;
+      font-weight: 700;
+    }
+    input, select{
+      width:100%;
+      box-sizing:border-box;
+      padding: 10px 11px;
+      border-radius: 12px;
+      border: 1px solid rgba(15,23,42,.18);
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+    input:focus, select:focus{
+      border-color: rgba(0,40,85,.55);
+      box-shadow: 0 0 0 4px rgba(0,40,85,.10);
+    }
+
+    .btns{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top: 12px;
+      align-items:center;
+    }
+    button{
+      border:0;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 900;
+      cursor:pointer;
+      background: var(--navy);
+      color:#fff;
+      box-shadow: 0 10px 22px rgba(0,40,85,.18);
+    }
+    button.secondary{
+      background: #fff;
+      color: var(--navy);
+      border: 1px solid rgba(0,40,85,.28);
+      box-shadow: none;
+    }
+
+    .note{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .out{ display:flex; flex-direction:column; gap: 10px; }
+    .pill{
+      border-radius: 14px;
+      padding: 12px 12px;
+      border: 1px solid var(--line);
+      background: #fbfdff;
+    }
+    .pill .k{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .pill .v{
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: .2px;
+      font-family: var(--mono);
+    }
+    .warn{
+      border-left: 5px solid var(--bad);
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(185,28,28,.06);
+      color: var(--bad);
+      font-size: 12px;
+      display:none;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+    .ok{
+      border-left: 5px solid var(--good);
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15,118,110,.06);
+      color: var(--good);
+      font-size: 12px;
+      display:none;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+    .tiny{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.35;
+    }
+    .eq{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #0b1220;
+      background: rgba(2,6,23,.04);
+      border: 1px solid rgba(2,6,23,.08);
+      padding: 8px 10px;
+      border-radius: 12px;
+      overflow-x:auto;
+      white-space: pre-wrap;
+    }
+    .divider{ height:1px; background: var(--line); margin: 12px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="brand">
+        <div class="badge">ERAU</div>
+        <div>
+          <h1>Distribution Area & Critical Value Tool</h1>
+          <div class="sub">Normal • Gamma • Chi-square • Exponential — probabilities and inverse (quantiles)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tabbtn active" id="tabArea">Area / Probability</button>
+      <button class="tabbtn" id="tabInv">Inverse / Critical Value</button>
+    </div>
+
+    <div class="grid">
+      <!-- INPUTS -->
+      <div class="card">
+        <h2>Inputs</h2>
+
+        <div class="row two">
+          <div>
+            <label for="dist">Distribution</label>
+            <select id="dist">
+              <option value="normal">Normal (μ, σ)</option>
+              <option value="gamma">Gamma (shape α, scale θ)</option>
+              <option value="chisq">Chi-square (df ν)</option>
+              <option value="exp">Exponential (rate λ)</option>
+            </select>
+          </div>
+
+          <div id="areaModeBlock">
+            <label for="tail_area">Probability Type</label>
+            <select id="tail_area">
+              <option value="lt">P(X &lt; x)</option>
+              <option value="gt">P(X &gt; x)</option>
+              <option value="btw">P(a &lt; X &lt; b)</option>
+            </select>
+          </div>
+
+          <div id="invModeBlock" style="display:none;">
+            <label for="tail_inv">Critical Value Type (solve for x)</label>
+            <select id="tail_inv">
+              <option value="lt">Given p, find x where P(X &lt; x)=p</option>
+              <option value="gt">Given p, find x where P(X &gt; x)=p</option>
+              <option value="btw">Given p, find symmetric central interval</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- distribution parameters -->
+        <div id="params_normal" class="row two">
+          <div>
+            <label for="mu">Mean μ</label>
+            <input id="mu" type="number" step="any" value="0" />
+          </div>
+          <div>
+            <label for="sigma">Std dev σ (must be &gt; 0)</label>
+            <input id="sigma" type="number" step="any" value="1" />
+          </div>
+        </div>
+
+        <div id="params_gamma" class="row two" style="display:none;">
+          <div>
+            <label for="alpha">Shape α (must be &gt; 0)</label>
+            <input id="alpha" type="number" step="any" value="2" />
+          </div>
+          <div>
+            <label for="theta">Scale θ (must be &gt; 0)</label>
+            <input id="theta" type="number" step="any" value="2" />
+          </div>
+        </div>
+
+        <div id="params_chisq" class="row" style="display:none;">
+          <div>
+            <label for="nu">Degrees of freedom ν (must be &gt; 0)</label>
+            <input id="nu" type="number" step="any" value="4" />
+          </div>
+        </div>
+
+        <div id="params_exp" class="row" style="display:none;">
+          <div>
+            <label for="lambda">Rate λ (must be &gt; 0)</label>
+            <input id="lambda" type="number" step="any" value="1" />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- AREA inputs -->
+        <div id="areaInputs">
+          <div id="x_block" class="row">
+            <div>
+              <label for="x">x</label>
+              <input id="x" type="number" step="any" value="1.5" />
+            </div>
+          </div>
+
+          <div id="ab_block" class="row two" style="display:none;">
+            <div>
+              <label for="a">a</label>
+              <input id="a" type="number" step="any" value="1" />
+            </div>
+            <div>
+              <label for="b">b</label>
+              <input id="b" type="number" step="any" value="3" />
+            </div>
+          </div>
+
+          <div class="btns">
+            <button id="calcArea">Compute Probability</button>
+            <button class="secondary" id="swap">Swap a ↔ b</button>
+            <button class="secondary" id="reset">Reset</button>
+          </div>
+
+          <div class="note">
+            Area mode: For Gamma/Chi-square/Exponential, values &lt; 0 have CDF = 0.
+          </div>
+        </div>
+
+        <!-- INVERSE inputs -->
+        <div id="invInputs" style="display:none;">
+          <div class="row">
+            <div>
+              <label for="p_in">p (probability, must be between 0 and 1)</label>
+              <input id="p_in" type="number" step="any" value="0.95" />
+            </div>
+          </div>
+
+          <div id="invCentralHelp" class="note" style="display:none;">
+            Central interval: returns <b>[L, U]</b> such that P(L &lt; X &lt; U)=p and tails split equally:
+            P(X&lt;L)=P(X&gt;U)=(1-p)/2.
+          </div>
+
+          <div class="btns">
+            <button id="calcInv">Compute Critical Value</button>
+            <button class="secondary" id="reset2">Reset</button>
+          </div>
+
+          <div class="note">
+            Inverse mode uses a robust numerical solve (bisection with automatic bracketing). For Normal, this is precise enough for teaching and typical homework/exam work.
+          </div>
+        </div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="card">
+        <h2>Output</h2>
+
+        <div id="warn" class="warn"></div>
+        <div id="ok" class="ok"></div>
+
+        <div class="out">
+          <div class="pill">
+            <div class="k" id="outLabel">Probability</div>
+            <div class="v" id="pout">—</div>
+          </div>
+
+          <div class="pill">
+            <div class="k">Interpretation</div>
+            <div class="tiny" id="interp">Choose a mode and inputs, then compute.</div>
+          </div>
+
+          <div class="pill">
+            <div class="k">Computation</div>
+            <div class="eq" id="eq">—</div>
+          </div>
+        </div>
+
+        <div class="tiny" style="margin-top:14px;">
+          Canvas embed (host file, then):
+          <div class="eq">&lt;iframe src="YOUR_URL_HERE" width="100%" height="820" style="border:0;"&gt;&lt;/iframe&gt;</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* -----------------------------
+   Core math utilities
+------------------------------*/
+
+// Error function approximation (Abramowitz-Stegun 7.1.26)
+function erf(x){
+  const sign = x < 0 ? -1 : 1;
+  x = Math.abs(x);
+  const a1=0.254829592, a2=-0.284496736, a3=1.421413741, a4=-1.453152027, a5=1.061405429;
+  const p=0.3275911;
+  const t = 1.0/(1.0 + p*x);
+  const y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*Math.exp(-x*x);
+  return sign*y;
+}
+
+function normalCDF(x, mu, sigma){
+  const z = (x - mu) / (sigma * Math.SQRT2);
+  return 0.5 * (1 + erf(z));
+}
+
+// Lanczos approximation for log-gamma
+function gammaln(z){
+  const p = [
+    676.5203681218851,
+   -1259.1392167224028,
+    771.32342877765313,
+   -176.61502916214059,
+    12.507343278686905,
+   -0.13857109526572012,
+    9.9843695780195716e-6,
+    1.5056327351493116e-7
+  ];
+  if (z < 0.5){
+    return Math.log(Math.PI) - Math.log(Math.sin(Math.PI*z)) - gammaln(1 - z);
+  }
+  z -= 1;
+  let x = 0.99999999999980993;
+  for (let i=0; i<p.length; i++) x += p[i]/(z + i + 1);
+  const t = z + p.length - 0.5;
+  return 0.5*Math.log(2*Math.PI) + (z + 0.5)*Math.log(t) - t + Math.log(x);
+}
+
+// Regularized lower incomplete gamma P(a, x)
+function gammaincLowerReg(a, x){
+  if (x <= 0) return 0;
+  if (a <= 0) return NaN;
+
+  const ITMAX = 250;
+  const EPS = 1e-14;
+  const FPMIN = 1e-300;
+
+  if (x < a + 1){
+    let ap = a;
+    let sum = 1/a;
+    let del = sum;
+    for (let n=1; n<=ITMAX; n++){
+      ap += 1;
+      del *= x/ap;
+      sum += del;
+      if (Math.abs(del) < Math.abs(sum)*EPS) break;
+    }
+    const result = sum * Math.exp(-x + a*Math.log(x) - gammaln(a));
+    return Math.min(1, Math.max(0, result));
+  } else {
+    let b = x + 1 - a;
+    let c = 1 / FPMIN;
+    let d = 1 / b;
+    let h = d;
+    for (let i=1; i<=ITMAX; i++){
+      const an = -i*(i - a);
+      b += 2;
+      d = an*d + b;
+      if (Math.abs(d) < FPMIN) d = FPMIN;
+      c = b + an/c;
+      if (Math.abs(c) < FPMIN) c = FPMIN;
+      d = 1/d;
+      const del = d*c;
+      h *= del;
+      if (Math.abs(del - 1) < EPS) break;
+    }
+    const q = Math.exp(-x + a*Math.log(x) - gammaln(a)) * h;
+    const p = 1 - q;
+    return Math.min(1, Math.max(0, p));
+  }
+}
+
+function gammaCDF(x, alpha, theta){
+  if (x <= 0) return 0;
+  if (alpha <= 0 || theta <= 0) return NaN;
+  return gammaincLowerReg(alpha, x/theta);
+}
+
+function chisqCDF(x, nu){
+  if (x <= 0) return 0;
+  if (nu <= 0) return NaN;
+  return gammaCDF(x, nu/2, 2);
+}
+
+function expCDF(x, lambda){
+  if (x <= 0) return 0;
+  if (lambda <= 0) return NaN;
+  return 1 - Math.exp(-lambda*x);
+}
+
+function clamp01(p){
+  if (!isFinite(p)) return NaN;
+  return Math.min(1, Math.max(0, p));
+}
+
+function fmt(x){
+  if (!isFinite(x)) return "—";
+  const s = x.toFixed(10);
+  return s.replace(/\.?0+$/, "");
+}
+
+/* -----------------------------
+   Inverse / root finding
+------------------------------*/
+
+// Bisection solver for F(x)=target on [lo,hi]
+function bisectSolve(F, target, lo, hi, tol=1e-10, maxIter=200){
+  let flo = F(lo) - target;
+  let fhi = F(hi) - target;
+
+  if (!isFinite(flo) || !isFinite(fhi)) return {x: NaN, err:"Non-finite function values in solver interval."};
+  if (flo === 0) return {x: lo};
+  if (fhi === 0) return {x: hi};
+  if (flo*fhi > 0) return {x: NaN, err:"Root is not bracketed."};
+
+  for (let i=0; i<maxIter; i++){
+    const mid = 0.5*(lo+hi);
+    const fmid = F(mid) - target;
+    if (!isFinite(fmid)) return {x: NaN, err:"Non-finite function value during solve."};
+    if (Math.abs(fmid) < tol || (hi-lo)/2 < tol) return {x: mid};
+    if (flo*fmid <= 0){
+      hi = mid; fhi = fmid;
+    } else {
+      lo = mid; flo = fmid;
+    }
+  }
+  return {x: 0.5*(lo+hi), warn:"Max iterations reached; returning best estimate."};
+}
+
+// Automatic bracketing for monotone CDFs
+function invertMonotoneCDF(F, target, support){
+  // support: {min, start, step, grow, max} (start is an initial guess)
+  const tol = 1e-10;
+  const maxIter = 200;
+
+  if (!(target > 0) && target !== 0) return {x: NaN, err:"target must be in [0,1]."};
+  if (!(target < 1) && target !== 1) return {x: NaN, err:"target must be in [0,1]."};
+
+  // Handle edges
+  if (target === 0) return {x: support.min};
+  if (target === 1) return {x: support.max};
+
+  // Find lo,hi s.t. F(lo) <= target <= F(hi)
+  let lo = support.min;
+  let hi = support.start;
+
+  // Ensure hi is at least min
+  if (hi < lo) hi = lo;
+
+  let flo = F(lo);
+  let fhi = F(hi);
+
+  // If already above target, move hi down? (rare with start near min)
+  if (fhi < target){
+    let step = support.step;
+    for (let k=0; k<120; k++){
+      if (hi >= support.max) break;
+      hi = Math.min(support.max, hi + step);
+      fhi = F(hi);
+      if (fhi >= target) break;
+      step *= support.grow;
+    }
+  } else if (flo > target){
+    // Move lo down (for normal which has -inf support approximated by min)
+    let step = support.step;
+    for (let k=0; k<120; k++){
+      if (lo <= support.min) break;
+      lo = Math.max(support.min, lo - step);
+      flo = F(lo);
+      if (flo <= target) break;
+      step *= support.grow;
+    }
+  }
+
+  flo = F(lo);
+  fhi = F(hi);
+
+  if (!(flo <= target && target <= fhi)){
+    return {x: NaN, err:`Could not bracket target. Try different parameters.\nF(lo)=${flo}, F(hi)=${fhi}`};
+  }
+
+  // Solve
+  const sol = bisectSolve(F, target, lo, hi, tol, maxIter);
+  return sol;
+}
+
+/* -----------------------------
+   UI logic
+------------------------------*/
+
+const distEl = document.getElementById("dist");
+
+const tabArea = document.getElementById("tabArea");
+const tabInv = document.getElementById("tabInv");
+
+const areaModeBlock = document.getElementById("areaModeBlock");
+const invModeBlock = document.getElementById("invModeBlock");
+
+const tailAreaEl = document.getElementById("tail_area");
+const tailInvEl  = document.getElementById("tail_inv");
+
+const paramsNormal = document.getElementById("params_normal");
+const paramsGamma  = document.getElementById("params_gamma");
+const paramsChisq  = document.getElementById("params_chisq");
+const paramsExp    = document.getElementById("params_exp");
+
+const areaInputs = document.getElementById("areaInputs");
+const invInputs  = document.getElementById("invInputs");
+
+const xBlock  = document.getElementById("x_block");
+const abBlock = document.getElementById("ab_block");
+
+const invCentralHelp = document.getElementById("invCentralHelp");
+
+const warnEl = document.getElementById("warn");
+const okEl   = document.getElementById("ok");
+
+const poutEl = document.getElementById("pout");
+const outLabelEl = document.getElementById("outLabel");
+const interpEl = document.getElementById("interp");
+const eqEl = document.getElementById("eq");
+
+let mode = "area"; // "area" or "inv"
+
+function showMessage(type, text){
+  warnEl.style.display = "none";
+  okEl.style.display = "none";
+  if (!text) return;
+  if (type === "warn"){
+    warnEl.textContent = text;
+    warnEl.style.display = "block";
+  } else {
+    okEl.textContent = text;
+    okEl.style.display = "block";
+  }
+}
+
+function updateDistVisibility(){
+  const d = distEl.value;
+  paramsNormal.style.display = (d==="normal") ? "" : "none";
+  paramsGamma.style.display  = (d==="gamma")  ? "" : "none";
+  paramsChisq.style.display  = (d==="chisq")  ? "" : "none";
+  paramsExp.style.display    = (d==="exp")    ? "" : "none";
+  showMessage("", "");
+}
+
+function updateAreaTailVisibility(){
+  const t = tailAreaEl.value;
+  xBlock.style.display  = (t==="btw") ? "none" : "";
+  abBlock.style.display = (t==="btw") ? "" : "none";
+}
+
+function updateInvHelp(){
+  invCentralHelp.style.display = (tailInvEl.value === "btw") ? "" : "none";
+}
+
+function setMode(newMode){
+  mode = newMode;
+  const isArea = mode === "area";
+
+  tabArea.classList.toggle("active", isArea);
+  tabInv.classList.toggle("active", !isArea);
+
+  areaModeBlock.style.display = isArea ? "" : "none";
+  invModeBlock.style.display  = isArea ? "none" : "";
+
+  areaInputs.style.display = isArea ? "" : "none";
+  invInputs.style.display  = isArea ? "none" : "";
+
+  outLabelEl.textContent = isArea ? "Probability" : "Critical value";
+  poutEl.textContent = "—";
+  interpEl.textContent = "Choose a mode and inputs, then compute.";
+  eqEl.textContent = "—";
+  showMessage("", "");
+
+  // ensure sub-visibility
+  updateAreaTailVisibility();
+  updateInvHelp();
+  updateDistVisibility();
+}
+
+tabArea.addEventListener("click", () => setMode("area"));
+tabInv.addEventListener("click", () => setMode("inv"));
+
+distEl.addEventListener("change", updateDistVisibility);
+tailAreaEl.addEventListener("change", updateAreaTailVisibility);
+tailInvEl.addEventListener("change", updateInvHelp);
+
+document.getElementById("swap").addEventListener("click", () => {
+  const a = document.getElementById("a");
+  const b = document.getElementById("b");
+  const tmp = a.value;
+  a.value = b.value;
+  b.value = tmp;
+});
+
+function doReset(){
+  distEl.value = "normal";
+  tailAreaEl.value = "lt";
+  tailInvEl.value = "lt";
+
+  document.getElementById("mu").value = 0;
+  document.getElementById("sigma").value = 1;
+
+  document.getElementById("alpha").value = 2;
+  document.getElementById("theta").value = 2;
+
+  document.getElementById("nu").value = 4;
+
+  document.getElementById("lambda").value = 1;
+
+  document.getElementById("x").value = 1.5;
+  document.getElementById("a").value = 1;
+  document.getElementById("b").value = 3;
+
+  document.getElementById("p_in").value = 0.95;
+
+  poutEl.textContent = "—";
+  interpEl.textContent = "Choose a mode and inputs, then compute.";
+  eqEl.textContent = "—";
+  showMessage("", "");
+
+  updateDistVisibility();
+  updateAreaTailVisibility();
+  updateInvHelp();
+}
+
+document.getElementById("reset").addEventListener("click", () => doReset());
+document.getElementById("reset2").addEventListener("click", () => doReset());
+
+function getCDF(d){
+  if (d==="normal"){
+    const mu = Number(document.getElementById("mu").value);
+    const sigma = Number(document.getElementById("sigma").value);
+    if (!(sigma > 0)) return {F: null, err: "For Normal, σ must be > 0."};
+    return {
+      F: (x) => normalCDF(x, mu, sigma),
+      eq: `Normal CDF Φ((x-μ)/σ) with μ=${mu}, σ=${sigma}`,
+      support: { min: mu - 12*sigma, start: mu, step: 1*sigma, grow: 1.8, max: mu + 12*sigma }
+    };
+  }
+  if (d==="gamma"){
+    const alpha = Number(document.getElementById("alpha").value);
+    const theta = Number(document.getElementById("theta").value);
+    if (!(alpha > 0) || !(theta > 0)) return {F: null, err: "For Gamma, α and θ must be > 0."};
+    // heuristic upper max: mean+15 sd (sd = sqrt(alpha)*theta)
+    const mean = alpha*theta;
+    const sd = Math.sqrt(alpha)*theta;
+    return {
+      F: (x) => gammaCDF(x, alpha, theta),
+      eq: `Gamma CDF P(α, x/θ) with α=${alpha}, θ=${theta}`,
+      support: { min: 0, start: Math.max(0, mean), step: Math.max(1e-6, sd/2), grow: 1.8, max: mean + 50*sd + 10 }
+    };
+  }
+  if (d==="chisq"){
+    const nu = Number(document.getElementById("nu").value);
+    if (!(nu > 0)) return {F: null, err: "For Chi-square, ν must be > 0."};
+    const mean = nu;
+    const sd = Math.sqrt(2*nu);
+    return {
+      F: (x) => chisqCDF(x, nu),
+      eq: `Chi-square CDF = Gamma(α=ν/2, θ=2) with ν=${nu}`,
+      support: { min: 0, start: Math.max(0, mean), step: Math.max(1e-6, sd/2), grow: 1.8, max: mean + 50*sd + 10 }
+    };
+  }
+  if (d==="exp"){
+    const lambda = Number(document.getElementById("lambda").value);
+    if (!(lambda > 0)) return {F: null, err: "For Exponential, λ must be > 0."};
+    const mean = 1/lambda;
+    const sd = 1/lambda;
+    return {
+      F: (x) => expCDF(x, lambda),
+      eq: `Exponential CDF 1 - e^{-λx} with λ=${lambda}`,
+      support: { min: 0, start: mean, step: Math.max(1e-6, sd/2), grow: 1.8, max: mean + 80*sd + 10 }
+    };
+  }
+  return {F: null, err: "Unknown distribution."};
+}
+
+/* -----------------------------
+   AREA calculations
+------------------------------*/
+document.getElementById("calcArea").addEventListener("click", () => {
+  const d = distEl.value;
+  const t = tailAreaEl.value;
+  const x = Number(document.getElementById("x").value);
+  const a = Number(document.getElementById("a").value);
+  const b = Number(document.getElementById("b").value);
+
+  showMessage("", "");
+
+  const c = getCDF(d);
+  if (c.err){ showMessage("warn", c.err); return; }
+  const F = c.F;
+
+  let prob = NaN;
+  let interp = "";
+  let eq = "";
+
+  if (t === "lt"){
+    const Fx = clamp01(F(x));
+    prob = Fx;
+    eq = `${c.eq}\nP(X < x) = F(x),  x=${x}`;
+    interp = `Area to the LEFT of x=${x}.`;
+  } else if (t === "gt"){
+    const Fx = clamp01(F(x));
+    prob = clamp01(1 - Fx);
+    eq = `${c.eq}\nP(X > x) = 1 - F(x),  x=${x}`;
+    interp = `Area to the RIGHT of x=${x}.`;
+  } else {
+    const lo = Math.min(a,b), hi = Math.max(a,b);
+    const Flo = clamp01(F(lo));
+    const Fhi = clamp01(F(hi));
+    prob = clamp01(Fhi - Flo);
+    eq = `${c.eq}\nP(a < X < b) = F(b) - F(a)\na=${lo}, b=${hi}`;
+    interp = `Area BETWEEN a=${lo} and b=${hi}.`;
+  }
+
+  if (!isFinite(prob)){
+    showMessage("warn", "Computation failed (check parameters/inputs).");
+    return;
+  }
+
+  outLabelEl.textContent = "Probability";
+  poutEl.textContent = fmt(prob);
+  interpEl.textContent = interp;
+  eqEl.textContent = eq;
+  showMessage("ok", "Computed successfully.");
+});
+
+/* -----------------------------
+   INVERSE calculations
+------------------------------*/
+document.getElementById("calcInv").addEventListener("click", () => {
+  const d = distEl.value;
+  const t = tailInvEl.value;
+  const p = Number(document.getElementById("p_in").value);
+
+  showMessage("", "");
+
+  if (!(p >= 0 && p <= 1) || !isFinite(p)){
+    showMessage("warn", "p must be a finite number between 0 and 1 (inclusive).");
+    return;
+  }
+
+  const c = getCDF(d);
+  if (c.err){ showMessage("warn", c.err); return; }
+  const F = c.F;
+  const sup = c.support;
+
+  let interp = "";
+  let eq = "";
+  let out = "";
+
+  // Convert request to lower-tail targets
+  if (t === "lt"){
+    const target = p;
+    const sol = invertMonotoneCDF(F, target, sup);
+    if (sol.err){ showMessage("warn", sol.err); return; }
+    outLabelEl.textContent = "Critical value x";
+    out = fmt(sol.x);
+    interp = `x such that P(X < x) = ${fmt(p)}.`;
+    eq = `${c.eq}\nSolve F(x)=p with p=${p}\nResult: x=${sol.x}`;
+    if (sol.warn) showMessage("ok", `Computed with warning:\n${sol.warn}`); else showMessage("ok", "Computed successfully.");
+  }
+  else if (t === "gt"){
+    // P(X > x)=p  =>  F(x)=1-p
+    const target = 1 - p;
+    const sol = invertMonotoneCDF(F, target, sup);
+    if (sol.err){ showMessage("warn", sol.err); return; }
+    outLabelEl.textContent = "Critical value x";
+    out = fmt(sol.x);
+    interp = `x such that P(X > x) = ${fmt(p)} (equivalently F(x)=${fmt(1-p)}).`;
+    eq = `${c.eq}\nSolve 1 - F(x)=p  ⇒  F(x)=1-p=${1-p}\nResult: x=${sol.x}`;
+    if (sol.warn) showMessage("ok", `Computed with warning:\n${sol.warn}`); else showMessage("ok", "Computed successfully.");
+  }
+  else {
+    // central interval: tails (1-p)/2 each, return [L,U]
+    const tail = (1 - p)/2;
+    const pL = tail;
+    const pU = 1 - tail;
+
+    const solL = invertMonotoneCDF(F, pL, sup);
+    const solU = invertMonotoneCDF(F, pU, sup);
+
+    if (solL.err){ showMessage("warn", "Lower bound solve failed:\n" + solL.err); return; }
+    if (solU.err){ showMessage("warn", "Upper bound solve failed:\n" + solU.err); return; }
+
+    outLabelEl.textContent = "Central interval [L, U]";
+    out = `[${fmt(solL.x)}, ${fmt(solU.x)}]`;
+    interp = `Central interval with P(L < X < U) = ${fmt(p)} and each tail = ${(1-p)/2}.`;
+    eq = `${c.eq}\nCentral interval: L=F^{-1}((1-p)/2), U=F^{-1}(1-(1-p)/2)\n(1-p)/2=${tail}\nL=${solL.x}\nU=${solU.x}`;
+    showMessage("ok", "Computed successfully.");
+  }
+
+  poutEl.textContent = out;
+  interpEl.textContent = interp;
+  eqEl.textContent = eq;
+});
+
+/* -----------------------------
+   Init
+------------------------------*/
+function init(){
+  updateDistVisibility();
+  updateAreaTailVisibility();
+  updateInvHelp();
+  setMode("area");
+}
+init();
+</script>
+</body>
+</html>
