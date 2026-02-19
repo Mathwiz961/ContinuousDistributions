@@ -1,170 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Distribution Area & Critical Value Calculator</title>
+
+  <style>
+    :root{
+      --erau-navy:#002855;
+      --erau-gold:#F6BE00;
+
+      --bg:#f4f6f9;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:rgba(15,23,42,.12);
+
+      --radius:18px;
+      --shadow:0 10px 25px rgba(0,0,0,.08);
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    /* ================= HEADER (ANOVA-like) ================= */
+
+    .topbar{
+      background:var(--erau-navy);
+      color:#fff;
+      padding:22px 32px 18px 32px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+    }
+
+    .topbar-left h1{
+      margin:0;
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+
+    .topbar-left p{
+      margin:6px 0 0;
+      font-size:14px;
+      opacity:.9;
+    }
+
+    .erau-pill{
+      background:var(--erau-gold);
+      color:var(--erau-navy);
+      padding:10px 18px;
+      border-radius:999px;
+      font-weight:800;
+      font-size:14px;
+      white-space:nowrap;
+      box-shadow:0 10px 24px rgba(0,0,0,.18);
+    }
+
+    .gold-divider{
+      height:4px;
+      background:var(--erau-gold);
+    }
+
+    /* ================= LAYOUT ================= */
+
+    .wrapper{
+      max-width:1200px;
+      margin:26px auto;
+      padding:0 20px 28px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1.25fr;
+      gap:24px;
+      align-items:start;
+    }
+
+    @media(max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      .topbar{ padding:18px 18px 14px; flex-wrap:wrap; }
+      .erau-pill{ width:fit-content; }
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:20px;
+    }
+
+    .card h2{
+      margin:0 0 14px;
+      font-size:16px;
+      font-weight:900;
+    }
+
+    /* ================= FORM CONTROLS ================= */
+
+    label{
+      display:block;
+      font-size:12px;
+      font-weight:800;
+      color:var(--muted);
+      margin:12px 0 6px;
+    }
+
+    input, select{
+      width:100%;
+      padding:10px 11px;
+      border-radius:12px;
+      border:1px solid rgba(15,23,42,.18);
+      background:#fff;
+      font-size:14px;
+      outline:none;
+    }
+
+    input:focus, select:focus{
+      border-color: rgba(0,40,85,.55);
+      box-shadow: 0 0 0 4px rgba(0,40,85,.10);
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+
+    .row.two{
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @media(max-width: 560px){
+      .row.two{ grid-template-columns: 1fr; }
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border:none;
+      border-radius:12px;
+      padding:10px 14px;
+      font-weight:900;
+      cursor:pointer;
+      background:var(--erau-navy);
+      color:#fff;
+      box-shadow:0 10px 22px rgba(0,40,85,.18);
+      margin-top:14px;
+      width: fit-content;
+    }
+
+    .btn:active{ transform: translateY(1px); }
+
+    .note{
+      margin-top:12px;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+
+    /* ================= RESULTS ================= */
+
+    .msg{
+      margin: 0 0 12px;
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:12px;
+      font-weight:700;
+      display:none;
+      white-space:pre-wrap;
+    }
+
+    .msg.ok{
+      display:none;
+      color:#0f766e;
+      background:rgba(15,118,110,.07);
+      border-left:5px solid #0f766e;
+    }
+
+    .msg.warn{
+      display:none;
+      color:#b91c1c;
+      background:rgba(185,28,28,.06);
+      border-left:5px solid #b91c1c;
+    }
+
+    .pill{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 12px;
+      background:#fbfdff;
+      margin-top:12px;
+    }
+
+    .pill .k{
+      font-size:12px;
+      font-weight:900;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    .pill .v{
+      font-family:var(--mono);
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+
+    .mono{
+      font-family:var(--mono);
+      font-size:12px;
+      background:rgba(2,6,23,.04);
+      border:1px solid rgba(2,6,23,.08);
+      padding:10px 10px;
+      border-radius:12px;
+      white-space:pre-wrap;
+      overflow-x:auto;
+      line-height:1.35;
+    }
+  </style>
+</head>
+
 <body>
 
-<!-- ================= HEADER ================= -->
-
-<div class="topbar">
-  <div class="topbar-left">
-    <h1>Distribution Area & Critical Value Calculator</h1>
-    <p>Normal • Gamma • Chi-Square • Exponential</p>
+  <!-- HEADER -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Distribution Area &amp; Critical Value Calculator</h1>
+      <p>Normal • Gamma • Chi-Square • Exponential</p>
+    </div>
+    <div class="erau-pill">Embry-Riddle Aeronautical University</div>
   </div>
-  <div class="erau-pill">
-    Embry-Riddle Aeronautical University
-  </div>
-</div>
+  <div class="gold-divider"></div>
 
-<div class="gold-divider"></div>
+  <!-- CONTENT -->
+  <div class="wrapper">
+    <div class="grid">
 
-<!-- ================= MAIN CONTENT ================= -->
+      <!-- INPUT -->
+      <div class="card">
+        <h2>Input</h2>
 
-<div class="wrapper">
-  <div class="grid">
-
-    <!-- ================= INPUT CARD ================= -->
-    <div class="card">
-      <h2>Input</h2>
-
-      <!-- Distribution -->
-      <label>Distribution</label>
-      <select id="dist">
-        <option value="normal">Normal (μ, σ)</option>
-        <option value="gamma">Gamma (shape α, scale θ)</option>
-        <option value="chisq">Chi-square (df ν)</option>
-        <option value="exp">Exponential (rate λ)</option>
-      </select>
-
-      <br><br>
-
-      <!-- Area / Inverse Mode -->
-      <label>Mode</label>
-      <select id="modeSelect">
-        <option value="area">Area / Probability</option>
-        <option value="inv">Inverse / Critical Value</option>
-      </select>
-
-      <br><br>
-
-      <!-- Parameters -->
-      <div id="params_normal">
-        <label>Mean μ</label>
-        <input id="mu" type="number" value="0">
-
-        <label>Std Dev σ</label>
-        <input id="sigma" type="number" value="1">
-      </div>
-
-      <div id="params_gamma" style="display:none;">
-        <label>Shape α</label>
-        <input id="alpha" type="number" value="2">
-
-        <label>Scale θ</label>
-        <input id="theta" type="number" value="2">
-      </div>
-
-      <div id="params_chisq" style="display:none;">
-        <label>Degrees of Freedom ν</label>
-        <input id="nu" type="number" value="4">
-      </div>
-
-      <div id="params_exp" style="display:none;">
-        <label>Rate λ</label>
-        <input id="lambda" type="number" value="1">
-      </div>
-
-      <br>
-
-      <!-- Area Inputs -->
-      <div id="areaInputs">
-        <label>Probability Type</label>
-        <select id="tail_area">
-          <option value="lt">P(X &lt; x)</option>
-          <option value="gt">P(X &gt; x)</option>
-          <option value="btw">P(a &lt; X &lt; b)</option>
+        <label for="dist">Distribution</label>
+        <select id="dist">
+          <option value="normal">Normal (μ, σ)</option>
+          <option value="gamma">Gamma (shape α, scale θ)</option>
+          <option value="chisq">Chi-square (df ν)</option>
+          <option value="exp">Exponential (rate λ)</option>
         </select>
 
-        <br><br>
-
-        <div id="x_block">
-          <label>x</label>
-          <input id="x" type="number" value="1.5">
-        </div>
-
-        <div id="ab_block" style="display:none;">
-          <label>a</label>
-          <input id="a" type="number" value="1">
-
-          <label>b</label>
-          <input id="b" type="number" value="3">
-        </div>
-
-        <br>
-        <button id="calcArea">Compute Probability</button>
-      </div>
-
-      <!-- Inverse Inputs -->
-      <div id="invInputs" style="display:none;">
-        <label>p (between 0 and 1)</label>
-        <input id="p_in" type="number" value="0.95">
-
-        <br><br>
-
-        <label>Critical Value Type</label>
-        <select id="tail_inv">
-          <option value="lt">Find x where P(X &lt; x) = p</option>
-          <option value="gt">Find x where P(X &gt; x) = p</option>
-          <option value="btw">Find central interval</option>
+        <label for="modeSelect">Mode</label>
+        <select id="modeSelect">
+          <option value="area">Area / Probability</option>
+          <option value="inv">Inverse / Critical Value</option>
         </select>
 
-        <br><br>
+        <!-- params -->
+        <div id="params_normal">
+          <div class="row two">
+            <div>
+              <label for="mu">Mean μ</label>
+              <input id="mu" type="number" step="any" value="0">
+            </div>
+            <div>
+              <label for="sigma">Std Dev σ</label>
+              <input id="sigma" type="number" step="any" value="1">
+            </div>
+          </div>
+        </div>
 
-        <button id="calcInv">Compute Critical Value</button>
+        <div id="params_gamma" style="display:none;">
+          <div class="row two">
+            <div>
+              <label for="alpha">Shape α</label>
+              <input id="alpha" type="number" step="any" value="2">
+            </div>
+            <div>
+              <label for="theta">Scale θ</label>
+              <input id="theta" type="number" step="any" value="2">
+            </div>
+          </div>
+        </div>
+
+        <div id="params_chisq" style="display:none;">
+          <label for="nu">Degrees of Freedom ν</label>
+          <input id="nu" type="number" step="any" value="4">
+        </div>
+
+        <div id="params_exp" style="display:none;">
+          <label for="lambda">Rate λ</label>
+          <input id="lambda" type="number" step="any" value="1">
+        </div>
+
+        <!-- AREA -->
+        <div id="areaInputs">
+          <label for="tail_area">Probability Type</label>
+          <select id="tail_area">
+            <option value="lt">P(X &lt; x)</option>
+            <option value="gt">P(X &gt; x)</option>
+            <option value="btw">P(a &lt; X &lt; b)</option>
+          </select>
+
+          <div id="x_block">
+            <label for="x">x</label>
+            <input id="x" type="number" step="any" value="1.5">
+          </div>
+
+          <div id="ab_block" style="display:none;">
+            <div class="row two">
+              <div>
+                <label for="a">a</label>
+                <input id="a" type="number" step="any" value="1">
+              </div>
+              <div>
+                <label for="b">b</label>
+                <input id="b" type="number" step="any" value="3">
+              </div>
+            </div>
+          </div>
+
+          <button class="btn" id="calcArea">Compute Probability</button>
+          <div class="note">For Gamma/Chi-square/Exponential, values &lt; 0 have CDF = 0.</div>
+        </div>
+
+        <!-- INVERSE -->
+        <div id="invInputs" style="display:none;">
+          <label for="p_in">p (0 to 1)</label>
+          <input id="p_in" type="number" step="any" value="0.95">
+
+          <label for="tail_inv">Critical Value Type</label>
+          <select id="tail_inv">
+            <option value="lt">Find x where P(X &lt; x) = p</option>
+            <option value="gt">Find x where P(X &gt; x) = p</option>
+            <option value="btw">Find central interval (equal tails)</option>
+          </select>
+
+          <button class="btn" id="calcInv">Compute Critical Value</button>
+          <div class="note">Inverse uses bisection + automatic bracketing for monotone CDFs.</div>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="card">
+        <h2>Results</h2>
+
+        <div id="ok" class="msg ok"></div>
+        <div id="warn" class="msg warn"></div>
+
+        <div class="pill">
+          <div class="k" id="outLabel">Probability</div>
+          <div class="v" id="pout">—</div>
+        </div>
+
+        <div class="pill">
+          <div class="k">Interpretation</div>
+          <div id="interp">Choose a mode and inputs, then compute.</div>
+        </div>
+
+        <div class="pill">
+          <div class="k">Computation</div>
+          <div class="mono" id="eq">—</div>
+        </div>
       </div>
 
     </div>
-
-    <!-- ================= RESULTS CARD ================= -->
-    <div class="card">
-      <h2>Results</h2>
-
-      <div id="warn" style="color:#b91c1c;"></div>
-      <div id="ok" style="color:#0f766e;"></div>
-
-      <br>
-
-      <div>
-        <strong id="outLabel">Probability</strong>
-        <div id="pout" style="font-family:monospace;font-size:18px;">—</div>
-      </div>
-
-      <br>
-
-      <div>
-        <strong>Interpretation</strong>
-        <div id="interp"></div>
-      </div>
-
-      <br>
-
-      <div>
-        <strong>Computation</strong>
-        <div id="eq" style="font-family:monospace;"></div>
-      </div>
-
-    </div>
-
   </div>
-</div>
 
 <script>
 /* =========================================================
-   Distribution Area & Critical Value Tool (Working Script)
-   Matches IDs in your new <body>:
-   dist, modeSelect, params_*, tail_area, tail_inv,
-   x, a, b, p_in, calcArea, calcInv, warn, ok,
-   outLabel, pout, interp, eq, x_block, ab_block,
-   areaInputs, invInputs
+   Working script for the above IDs
 ========================================================= */
-
-/* ---------- Core math utilities ---------- */
 
 // Error function approximation (Abramowitz-Stegun 7.1.26)
 function erf(x){
@@ -277,7 +495,7 @@ function fmt(x){
   return s.replace(/\.?0+$/, "");
 }
 
-/* ---------- Inverse solver (bisection with auto-bracket) ---------- */
+// ---------- Inverse solver (bisection with auto-bracket) ----------
 
 function bisectSolve(F, target, lo, hi, tol=1e-10, maxIter=200){
   let flo = F(lo) - target;
@@ -312,10 +530,10 @@ function invertMonotoneCDF(F, target, support){
   let lo = support.min;
   let hi = Math.max(support.start, lo);
 
-  // push hi up until F(hi) >= target
   let fhi = F(hi);
   let step = support.step;
-  for (let k=0; k<120 && fhi < target; k++){
+
+  for (let k=0; k<140 && fhi < target; k++){
     if (hi >= support.max) break;
     hi = Math.min(support.max, hi + step);
     fhi = F(hi);
@@ -326,30 +544,25 @@ function invertMonotoneCDF(F, target, support){
   if (!(flo <= target && target <= fhi)){
     return {x: NaN, err:`Could not bracket target.\nF(lo)=${flo}, F(hi)=${fhi}`};
   }
-
   return bisectSolve(F, target, lo, hi);
 }
 
-/* ---------- DOM helpers ---------- */
+// ---------- DOM helpers ----------
 
 const el = (id) => document.getElementById(id);
 
+function setMsg(id, text){
+  const node = el(id);
+  node.textContent = text || "";
+  node.style.display = text ? "block" : "none";
+}
+
 function clearMessages(){
-  el("warn").textContent = "";
-  el("ok").textContent = "";
+  setMsg("warn", "");
+  setMsg("ok", "");
 }
 
-function warn(msg){
-  el("warn").textContent = msg;
-  el("ok").textContent = "";
-}
-
-function ok(msg){
-  el("ok").textContent = msg;
-  el("warn").textContent = "";
-}
-
-/* ---------- Distribution CDF + support (for inverse) ---------- */
+// ---------- Distribution CDF + support ----------
 
 function getCDFAndSupport(){
   const d = el("dist").value;
@@ -358,7 +571,6 @@ function getCDFAndSupport(){
     const mu = Number(el("mu").value);
     const sigma = Number(el("sigma").value);
     if (!(sigma > 0)) return {err:"For Normal, σ must be > 0."};
-
     return {
       F: (x) => normalCDF(x, mu, sigma),
       desc: `Normal(μ=${mu}, σ=${sigma})`,
@@ -370,49 +582,43 @@ function getCDFAndSupport(){
     const alpha = Number(el("alpha").value);
     const theta = Number(el("theta").value);
     if (!(alpha > 0 && theta > 0)) return {err:"For Gamma, α and θ must be > 0."};
-
     const mean = alpha*theta;
     const sd = Math.sqrt(alpha)*theta;
-
     return {
       F: (x) => gammaCDF(x, alpha, theta),
       desc: `Gamma(α=${alpha}, θ=${theta})`,
-      support: { min: 0, start: Math.max(0, mean), step: Math.max(1e-6, sd/2), grow: 1.8, max: mean + 50*sd + 10 }
+      support: { min: 0, start: Math.max(0, mean), step: Math.max(1e-6, sd/2), grow: 1.8, max: mean + 60*sd + 10 }
     };
   }
 
   if (d === "chisq"){
     const nu = Number(el("nu").value);
     if (!(nu > 0)) return {err:"For Chi-square, ν must be > 0."};
-
     const mean = nu;
     const sd = Math.sqrt(2*nu);
-
     return {
       F: (x) => chisqCDF(x, nu),
       desc: `Chi-square(ν=${nu})`,
-      support: { min: 0, start: Math.max(0, mean), step: Math.max(1e-6, sd/2), grow: 1.8, max: mean + 50*sd + 10 }
+      support: { min: 0, start: Math.max(0, mean), step: Math.max(1e-6, sd/2), grow: 1.8, max: mean + 60*sd + 10 }
     };
   }
 
   if (d === "exp"){
     const lambda = Number(el("lambda").value);
     if (!(lambda > 0)) return {err:"For Exponential, λ must be > 0."};
-
     const mean = 1/lambda;
     const sd = 1/lambda;
-
     return {
       F: (x) => expCDF(x, lambda),
       desc: `Exponential(λ=${lambda})`,
-      support: { min: 0, start: mean, step: Math.max(1e-6, sd/2), grow: 1.8, max: mean + 80*sd + 10 }
+      support: { min: 0, start: mean, step: Math.max(1e-6, sd/2), grow: 1.8, max: mean + 100*sd + 10 }
     };
   }
 
   return {err:"Unknown distribution selection."};
 }
 
-/* ---------- UI toggles ---------- */
+// ---------- UI toggles ----------
 
 function updateParamVisibility(){
   const d = el("dist").value;
@@ -426,8 +632,6 @@ function updateModeVisibility(){
   const mode = el("modeSelect").value;
   el("areaInputs").style.display = (mode === "area") ? "" : "none";
   el("invInputs").style.display  = (mode === "inv")  ? "" : "none";
-
-  // clear output label appropriately
   el("outLabel").textContent = (mode === "area") ? "Probability" : "Critical value";
 }
 
@@ -437,17 +641,15 @@ function updateAreaInputVisibility(){
   el("ab_block").style.display = (t === "btw") ? "" : "none";
 }
 
-/* ---------- Calculations ---------- */
+// ---------- Calculations ----------
 
 function computeArea(){
   clearMessages();
-
   const pack = getCDFAndSupport();
-  if (pack.err){ warn(pack.err); return; }
+  if (pack.err){ setMsg("warn", pack.err); return; }
 
   const F = pack.F;
   const distDesc = pack.desc;
-
   const t = el("tail_area").value;
 
   let prob, eq, interp;
@@ -458,15 +660,13 @@ function computeArea(){
     prob = Fx;
     interp = `P(X < ${x}) for ${distDesc}`;
     eq = `P(X < x) = F(x)\nF(${x}) = ${prob}`;
-  }
-  else if (t === "gt"){
+  } else if (t === "gt"){
     const x = Number(el("x").value);
     const Fx = clamp01(F(x));
     prob = clamp01(1 - Fx);
     interp = `P(X > ${x}) for ${distDesc}`;
     eq = `P(X > x) = 1 - F(x)\n1 - F(${x}) = ${prob}`;
-  }
-  else { // between
+  } else {
     const a = Number(el("a").value);
     const b = Number(el("b").value);
     const lo = Math.min(a,b);
@@ -484,15 +684,13 @@ function computeArea(){
   el("pout").textContent = fmt(prob);
   el("interp").textContent = interp;
   el("eq").textContent = eq;
-
-  ok("Computed successfully.");
+  setMsg("ok", "Computed successfully.");
 }
 
 function computeInverse(){
   clearMessages();
-
   const pack = getCDFAndSupport();
-  if (pack.err){ warn(pack.err); return; }
+  if (pack.err){ setMsg("warn", pack.err); return; }
 
   const F = pack.F;
   const sup = pack.support;
@@ -500,7 +698,7 @@ function computeInverse(){
 
   const p = Number(el("p_in").value);
   if (!(p >= 0 && p <= 1) || !isFinite(p)){
-    warn("p must be a finite number between 0 and 1.");
+    setMsg("warn", "p must be a finite number between 0 and 1.");
     return;
   }
 
@@ -508,74 +706,57 @@ function computeInverse(){
 
   if (t === "lt"){
     const sol = invertMonotoneCDF(F, p, sup);
-    if (sol.err){ warn(sol.err); return; }
+    if (sol.err){ setMsg("warn", sol.err); return; }
 
     el("outLabel").textContent = "Critical value x";
     el("pout").textContent = fmt(sol.x);
     el("interp").textContent = `Find x such that P(X < x) = ${fmt(p)} for ${distDesc}`;
     el("eq").textContent = `Solve F(x)=p\np=${p}\nx=${sol.x}`;
-
-    if (sol.warn) ok("Computed (with warning): " + sol.warn);
-    else ok("Computed successfully.");
-  }
-  else if (t === "gt"){
-    const target = 1 - p; // F(x)=1-p
+    setMsg("ok", sol.warn ? ("Computed (warning): " + sol.warn) : "Computed successfully.");
+  } else if (t === "gt"){
+    const target = 1 - p;
     const sol = invertMonotoneCDF(F, target, sup);
-    if (sol.err){ warn(sol.err); return; }
+    if (sol.err){ setMsg("warn", sol.err); return; }
 
     el("outLabel").textContent = "Critical value x";
     el("pout").textContent = fmt(sol.x);
     el("interp").textContent = `Find x such that P(X > x) = ${fmt(p)} for ${distDesc}`;
     el("eq").textContent = `Solve 1-F(x)=p  ⇒  F(x)=1-p\n1-p=${target}\nx=${sol.x}`;
-
-    if (sol.warn) ok("Computed (with warning): " + sol.warn);
-    else ok("Computed successfully.");
-  }
-  else { // central interval
+    setMsg("ok", sol.warn ? ("Computed (warning): " + sol.warn) : "Computed successfully.");
+  } else {
     const tail = (1 - p) / 2;
     const pL = tail;
     const pU = 1 - tail;
 
     const solL = invertMonotoneCDF(F, pL, sup);
     const solU = invertMonotoneCDF(F, pU, sup);
-    if (solL.err){ warn("Lower bound failed:\n" + solL.err); return; }
-    if (solU.err){ warn("Upper bound failed:\n" + solU.err); return; }
+    if (solL.err){ setMsg("warn", "Lower bound failed:\n" + solL.err); return; }
+    if (solU.err){ setMsg("warn", "Upper bound failed:\n" + solU.err); return; }
 
     el("outLabel").textContent = "Central interval [L, U]";
     el("pout").textContent = `[${fmt(solL.x)}, ${fmt(solU.x)}]`;
     el("interp").textContent = `Find L,U such that P(L < X < U) = ${fmt(p)} (equal tails) for ${distDesc}`;
-    el("eq").textContent = `L = F^{-1}((1-p)/2), U = F^{-1}(1-(1-p)/2)\n(1-p)/2=${tail}\nL=${solL.x}\nU=${solU.x}`;
-
-    ok("Computed successfully.");
+    el("eq").textContent =
+      `L = F^{-1}((1-p)/2), U = F^{-1}(1-(1-p)/2)\n` +
+      `(1-p)/2=${tail}\nL=${solL.x}\nU=${solU.x}`;
+    setMsg("ok", "Computed successfully.");
   }
 }
 
-/* ---------- Wire up events ---------- */
+// ---------- Wire up events ----------
 
 function init(){
   updateParamVisibility();
   updateModeVisibility();
   updateAreaInputVisibility();
 
-  el("dist").addEventListener("change", () => {
-    updateParamVisibility();
-    clearMessages();
-  });
-
-  el("modeSelect").addEventListener("change", () => {
-    updateModeVisibility();
-    clearMessages();
-  });
-
-  el("tail_area").addEventListener("change", () => {
-    updateAreaInputVisibility();
-    clearMessages();
-  });
+  el("dist").addEventListener("change", () => { updateParamVisibility(); clearMessages(); });
+  el("modeSelect").addEventListener("change", () => { updateModeVisibility(); clearMessages(); });
+  el("tail_area").addEventListener("change", () => { updateAreaInputVisibility(); clearMessages(); });
 
   el("calcArea").addEventListener("click", computeArea);
   el("calcInv").addEventListener("click", computeInverse);
 
-  // initial output
   el("pout").textContent = "—";
   el("interp").textContent = "Choose a mode and inputs, then compute.";
   el("eq").textContent = "—";
@@ -585,3 +766,4 @@ init();
 </script>
 
 </body>
+</html>
