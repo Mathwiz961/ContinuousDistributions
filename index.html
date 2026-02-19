@@ -116,183 +116,168 @@
 
 </head>
 <body>
-  <div class="wrap">
-    <div class="header">
-      <div class="brand">
-        <div class="badge">ERAU</div>
-        <div>
-          <h1>Distribution Area & Critical Value Tool</h1>
-          <div class="sub">Normal • Gamma • Chi-square • Exponential — probabilities and inverse (quantiles)</div>
-        </div>
-      </div>
-    </div>
 
-    <div class="tabs">
-      <button class="tabbtn active" id="tabArea">Area / Probability</button>
-      <button class="tabbtn" id="tabInv">Inverse / Critical Value</button>
-    </div>
+<!-- ================= HEADER ================= -->
 
-    <div class="grid">
-      <!-- INPUTS -->
-      <div class="card">
-        <h2>Inputs</h2>
-
-        <div class="row two">
-          <div>
-            <label for="dist">Distribution</label>
-            <select id="dist">
-              <option value="normal">Normal (μ, σ)</option>
-              <option value="gamma">Gamma (shape α, scale θ)</option>
-              <option value="chisq">Chi-square (df ν)</option>
-              <option value="exp">Exponential (rate λ)</option>
-            </select>
-          </div>
-
-          <div id="areaModeBlock">
-            <label for="tail_area">Probability Type</label>
-            <select id="tail_area">
-              <option value="lt">P(X &lt; x)</option>
-              <option value="gt">P(X &gt; x)</option>
-              <option value="btw">P(a &lt; X &lt; b)</option>
-            </select>
-          </div>
-
-          <div id="invModeBlock" style="display:none;">
-            <label for="tail_inv">Critical Value Type (solve for x)</label>
-            <select id="tail_inv">
-              <option value="lt">Given p, find x where P(X &lt; x)=p</option>
-              <option value="gt">Given p, find x where P(X &gt; x)=p</option>
-              <option value="btw">Given p, find symmetric central interval</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- distribution parameters -->
-        <div id="params_normal" class="row two">
-          <div>
-            <label for="mu">Mean μ</label>
-            <input id="mu" type="number" step="any" value="0" />
-          </div>
-          <div>
-            <label for="sigma">Std dev σ (must be &gt; 0)</label>
-            <input id="sigma" type="number" step="any" value="1" />
-          </div>
-        </div>
-
-        <div id="params_gamma" class="row two" style="display:none;">
-          <div>
-            <label for="alpha">Shape α (must be &gt; 0)</label>
-            <input id="alpha" type="number" step="any" value="2" />
-          </div>
-          <div>
-            <label for="theta">Scale θ (must be &gt; 0)</label>
-            <input id="theta" type="number" step="any" value="2" />
-          </div>
-        </div>
-
-        <div id="params_chisq" class="row" style="display:none;">
-          <div>
-            <label for="nu">Degrees of freedom ν (must be &gt; 0)</label>
-            <input id="nu" type="number" step="any" value="4" />
-          </div>
-        </div>
-
-        <div id="params_exp" class="row" style="display:none;">
-          <div>
-            <label for="lambda">Rate λ (must be &gt; 0)</label>
-            <input id="lambda" type="number" step="any" value="1" />
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- AREA inputs -->
-        <div id="areaInputs">
-          <div id="x_block" class="row">
-            <div>
-              <label for="x">x</label>
-              <input id="x" type="number" step="any" value="1.5" />
-            </div>
-          </div>
-
-          <div id="ab_block" class="row two" style="display:none;">
-            <div>
-              <label for="a">a</label>
-              <input id="a" type="number" step="any" value="1" />
-            </div>
-            <div>
-              <label for="b">b</label>
-              <input id="b" type="number" step="any" value="3" />
-            </div>
-          </div>
-
-          <div class="btns">
-            <button id="calcArea">Compute Probability</button>
-            <button class="secondary" id="swap">Swap a ↔ b</button>
-            <button class="secondary" id="reset">Reset</button>
-          </div>
-
-          <div class="note">
-            Area mode: For Gamma/Chi-square/Exponential, values &lt; 0 have CDF = 0.
-          </div>
-        </div>
-
-        <!-- INVERSE inputs -->
-        <div id="invInputs" style="display:none;">
-          <div class="row">
-            <div>
-              <label for="p_in">p (probability, must be between 0 and 1)</label>
-              <input id="p_in" type="number" step="any" value="0.95" />
-            </div>
-          </div>
-
-          <div id="invCentralHelp" class="note" style="display:none;">
-            Central interval: returns <b>[L, U]</b> such that P(L &lt; X &lt; U)=p and tails split equally:
-            P(X&lt;L)=P(X&gt;U)=(1-p)/2.
-          </div>
-
-          <div class="btns">
-            <button id="calcInv">Compute Critical Value</button>
-            <button class="secondary" id="reset2">Reset</button>
-          </div>
-
-          <div class="note">
-            Inverse mode uses a robust numerical solve (bisection with automatic bracketing). For Normal, this is precise enough for teaching and typical homework/exam work.
-          </div>
-        </div>
-      </div>
-
-      <!-- OUTPUT -->
-      <div class="card">
-        <h2>Output</h2>
-
-        <div id="warn" class="warn"></div>
-        <div id="ok" class="ok"></div>
-
-        <div class="out">
-          <div class="pill">
-            <div class="k" id="outLabel">Probability</div>
-            <div class="v" id="pout">—</div>
-          </div>
-
-          <div class="pill">
-            <div class="k">Interpretation</div>
-            <div class="tiny" id="interp">Choose a mode and inputs, then compute.</div>
-          </div>
-
-          <div class="pill">
-            <div class="k">Computation</div>
-            <div class="eq" id="eq">—</div>
-          </div>
-        </div>
-
-        <div class="tiny" style="margin-top:14px;">
-          Canvas embed (host file, then):
-          <div class="eq">&lt;iframe src="YOUR_URL_HERE" width="100%" height="820" style="border:0;"&gt;&lt;/iframe&gt;</div>
-        </div>
-      </div>
-    </div>
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>Distribution Area & Critical Value Calculator</h1>
+    <p>Normal • Gamma • Chi-Square • Exponential</p>
   </div>
+  <div class="erau-pill">
+    Embry-Riddle Aeronautical University
+  </div>
+</div>
+
+<div class="gold-divider"></div>
+
+<!-- ================= MAIN CONTENT ================= -->
+
+<div class="wrapper">
+  <div class="grid">
+
+    <!-- ================= INPUT CARD ================= -->
+    <div class="card">
+      <h2>Input</h2>
+
+      <!-- Distribution -->
+      <label>Distribution</label>
+      <select id="dist">
+        <option value="normal">Normal (μ, σ)</option>
+        <option value="gamma">Gamma (shape α, scale θ)</option>
+        <option value="chisq">Chi-square (df ν)</option>
+        <option value="exp">Exponential (rate λ)</option>
+      </select>
+
+      <br><br>
+
+      <!-- Area / Inverse Mode -->
+      <label>Mode</label>
+      <select id="modeSelect">
+        <option value="area">Area / Probability</option>
+        <option value="inv">Inverse / Critical Value</option>
+      </select>
+
+      <br><br>
+
+      <!-- Parameters -->
+      <div id="params_normal">
+        <label>Mean μ</label>
+        <input id="mu" type="number" value="0">
+
+        <label>Std Dev σ</label>
+        <input id="sigma" type="number" value="1">
+      </div>
+
+      <div id="params_gamma" style="display:none;">
+        <label>Shape α</label>
+        <input id="alpha" type="number" value="2">
+
+        <label>Scale θ</label>
+        <input id="theta" type="number" value="2">
+      </div>
+
+      <div id="params_chisq" style="display:none;">
+        <label>Degrees of Freedom ν</label>
+        <input id="nu" type="number" value="4">
+      </div>
+
+      <div id="params_exp" style="display:none;">
+        <label>Rate λ</label>
+        <input id="lambda" type="number" value="1">
+      </div>
+
+      <br>
+
+      <!-- Area Inputs -->
+      <div id="areaInputs">
+        <label>Probability Type</label>
+        <select id="tail_area">
+          <option value="lt">P(X &lt; x)</option>
+          <option value="gt">P(X &gt; x)</option>
+          <option value="btw">P(a &lt; X &lt; b)</option>
+        </select>
+
+        <br><br>
+
+        <div id="x_block">
+          <label>x</label>
+          <input id="x" type="number" value="1.5">
+        </div>
+
+        <div id="ab_block" style="display:none;">
+          <label>a</label>
+          <input id="a" type="number" value="1">
+
+          <label>b</label>
+          <input id="b" type="number" value="3">
+        </div>
+
+        <br>
+        <button id="calcArea">Compute Probability</button>
+      </div>
+
+      <!-- Inverse Inputs -->
+      <div id="invInputs" style="display:none;">
+        <label>p (between 0 and 1)</label>
+        <input id="p_in" type="number" value="0.95">
+
+        <br><br>
+
+        <label>Critical Value Type</label>
+        <select id="tail_inv">
+          <option value="lt">Find x where P(X &lt; x) = p</option>
+          <option value="gt">Find x where P(X &gt; x) = p</option>
+          <option value="btw">Find central interval</option>
+        </select>
+
+        <br><br>
+
+        <button id="calcInv">Compute Critical Value</button>
+      </div>
+
+    </div>
+
+    <!-- ================= RESULTS CARD ================= -->
+    <div class="card">
+      <h2>Results</h2>
+
+      <div id="warn" style="color:#b91c1c;"></div>
+      <div id="ok" style="color:#0f766e;"></div>
+
+      <br>
+
+      <div>
+        <strong id="outLabel">Probability</strong>
+        <div id="pout" style="font-family:monospace;font-size:18px;">—</div>
+      </div>
+
+      <br>
+
+      <div>
+        <strong>Interpretation</strong>
+        <div id="interp"></div>
+      </div>
+
+      <br>
+
+      <div>
+        <strong>Computation</strong>
+        <div id="eq" style="font-family:monospace;"></div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- KEEP YOUR EXISTING SCRIPT EXACTLY BELOW THIS LINE -->
+<script>
+  /* DO NOT MODIFY YOUR EXISTING JAVASCRIPT */
+</script>
+
+</body>
+
 
 <script>
 /* -----------------------------
